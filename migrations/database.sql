@@ -10,3 +10,11 @@ CREATE TABLE IF NOT EXISTS users(
     password varchar(100) not null, 
     created_at timestamp default current_timestamp()
 ) ENGINE=INNODB;
+
+{
+    "name": "Matheus",
+    "nick": "Matheusiznho",
+    "email": "something@gmail.com",
+    "password": "123456",
+    "image_url": "none"
+}

@@ -9,6 +9,7 @@ import (
 // JSON returns responde in json
 func JSON(w http.ResponseWriter, statusCode int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(statusCode)
 
 	if statusCode != http.StatusNoContent && data != nil {
 		if err := json.NewEncoder(w).Encode(data); err != nil {

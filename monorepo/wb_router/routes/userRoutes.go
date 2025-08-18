@@ -5,35 +5,38 @@ import (
 	"v1/monorepo/handlers"
 )
 
-// Esse depois vou refatorar para ser
+// TODO entender mais sobre isso aqui
+// Esse depois vou refatorar para ser handler?
 const (
 	UriALL  = "/users"
 	UriByID = "/users/{userId}"
 )
 
+var Handlers = handlers.NewUserHandler()
+
 var userRoutes = []Route{
 	{
 		URI:         UriALL,
 		Method:      http.MethodPost,
-		Function:    handlers.CreateUser,
+		Function:    Handlers.CreateUser,
 		RequireAuth: false,
 	},
 	{
 		URI:         UriALL,
 		Method:      http.MethodGet,
-		Function:    handlers.GetUser,
+		Function:    Handlers.GetUser,
 		RequireAuth: true,
 	},
 	{
 		URI:         UriByID,
 		Method:      http.MethodPut,
-		Function:    handlers.UpdateUser,
-		RequireAuth: false,
+		Function:    Handlers.UpdateUser,
+		RequireAuth: true,
 	},
 	{
 		URI:         UriByID,
 		Method:      http.MethodDelete,
-		Function:    handlers.DeleteUser,
+		Function:    Handlers.DeleteUser,
 		RequireAuth: false,
 	},
 }

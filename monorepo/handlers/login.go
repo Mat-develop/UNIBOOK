@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"v1/monorepo/users/model"
 	"v1/monorepo/users/repository"
 	"v1/monorepo/util/authentication"
@@ -42,7 +43,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := authentication.CreateToken(string(rune(userAuth.ID)))
+	token, err := authentication.CreateToken(strconv.FormatUint(userAuth.ID, 10))
 	if err != nil {
 		response.Erro(w, http.StatusInternalServerError, err)
 		return

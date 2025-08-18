@@ -25,7 +25,6 @@ import (
 func main() {
 	config.Load()
 	r := mux.NewRouter()
-	fmt.Println(config.SecretKey)
 	r = routes.Config(r)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r))
 }

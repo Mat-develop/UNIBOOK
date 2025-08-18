@@ -23,8 +23,6 @@ func (user *User) Prepare(step string) error {
 	if err := user.validate(step); err != nil {
 		return err
 	}
-	user.format(step)
-	return nil
 
 	if err := user.format(step); err != nil {
 		return err

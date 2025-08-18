@@ -120,7 +120,7 @@ func (u *users) Update(ID uint64, user model.User) error {
 		return err
 	}
 	defer stm.Close()
-
+	// TODO dando pau aqui se vira pra arrumar isso matheus do futuro
 	if _, err = stm.Exec(user.Name, user.Nick, user.Email, ID); err != nil {
 		return err
 	}
