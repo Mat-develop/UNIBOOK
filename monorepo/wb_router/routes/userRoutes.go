@@ -37,6 +37,6 @@ var userRoutes = []Route{
 		URI:         UriByID,
 		Method:      http.MethodDelete,
 		Function:    Handlers.DeleteUser,
-		RequireAuth: false,
+		RequireAuth: true,
 	},
 }

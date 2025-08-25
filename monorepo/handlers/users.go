@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 	"net/http"
 	"strconv"
@@ -21,12 +21,21 @@ type UserHandler interface {
 	GetUser(w http.ResponseWriter, r *http.Request)
 	UpdateUser(w http.ResponseWriter, r *http.Request)
 	DeleteUser(w http.ResponseWriter, r *http.Request)
+	isSameAccount(w http.ResponseWriter, id uint64, tokenId uint64) bool
 }
 
 type userHandler struct{}
 
 func NewUserHandler() UserHandler {
 	return &userHandler{}
+}
+
+func (h *userHandler) isSameAccount(w http.ResponseWriter, id uint64, tokenId uint64) bool {
+	if id != tokenId {
+		response.Erro(w, http.StatusForbidden, errors.New("account doesn't match"))
+		return false
+	}
+	return true
 }
 
 // Isso Tbm é handler
@@ -107,14 +116,19 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		response.Erro(w, http.StatusUnauthorized, err)
 		return
 	}
-	fmt.Println(tokenUserId)
-	requestBody, err := io.ReadAll(r.Body)
-	if err != nil {
-		response.Erro(w, http.StatusUnprocessableEntity, err)
+
+	check := h.isSameAccount(w, userId, tokenUserId)
+	if !check {
 		return
 	}
 
-	var user model.User
+	requestBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		response.Erro(w, http.StatusUnprocessableEntity, errors.New("account doesn't match"))
+		return
+	}
+
+	var user *model.User
 	if err = json.Unmarshal(requestBody, &user); err != nil {
 		response.Erro(w, http.StatusBadRequest, err)
 		return
@@ -132,7 +146,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repo := repository.New(db)
-	if err = repo.Update(userId, user); err != nil {
+	if err = repo.Update(userId, *user); err != nil {
 		response.Erro(w, http.StatusInternalServerError, err)
 		return
 	}
@@ -145,6 +159,17 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	userId, err := strconv.ParseUint(params["userId"], 10, 64)
 	if err != nil {
 		response.Erro(w, http.StatusBadRequest, err)
+		return
+	}
+
+	tokenUserId, err := authentication.ExtractUserId(r)
+	if err != nil {
+		response.Erro(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	check := h.isSameAccount(w, userId, tokenUserId)
+	if !check {
 		return
 	}
 

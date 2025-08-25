@@ -48,5 +48,6 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		response.Erro(w, http.StatusInternalServerError, err)
 		return
 	}
-	w.Write([]byte("Login in sucessfully  " + token))
+
+	response.JSON(w, http.StatusOK, map[string]string{"token": token})
 }

@@ -45,12 +45,23 @@ func ExtractUserId(r *http.Request) (uint64, error) {
 		return 0, err
 	}
 
-	if permission, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userID, err := strconv.ParseUint(fmt.Sprintf("%.0f", permission["userId"]), 10, 64)
-		if err != nil {
-			return 0, err
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		rawID, ok := claims["userId"]
+		if !ok || rawID == nil {
+			return 0, errors.New("userId claim missing in token")
 		}
-		return userID, nil
+		switch v := rawID.(type) {
+		case float64:
+			return uint64(v), nil
+		case string:
+			userID, err := strconv.ParseUint(v, 10, 64)
+			if err != nil {
+				return 0, err
+			}
+			return userID, nil
+		default:
+			return 0, errors.New("userId claim has unexpected type")
+		}
 	}
 	return 0, errors.New("invalid token")
 }
