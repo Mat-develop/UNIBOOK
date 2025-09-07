@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"v1/monorepo/users/model"
-	"v1/monorepo/users/repository"
+	"v1/monorepo/users/service"
 	"v1/monorepo/util/authentication"
 	dbconfig "v1/monorepo/util/db_config"
 	"v1/monorepo/util/response"
@@ -21,58 +21,39 @@ type UserHandler interface {
 	GetUser(w http.ResponseWriter, r *http.Request)
 	UpdateUser(w http.ResponseWriter, r *http.Request)
 	DeleteUser(w http.ResponseWriter, r *http.Request)
-	isSameAccount(w http.ResponseWriter, id uint64, tokenId uint64) bool
+	Follow(w http.ResponseWriter, r *http.Request)
 }
 
-type userHandler struct{}
-
-func NewUserHandler() UserHandler {
-	return &userHandler{}
+type userHandler struct {
+	service service.UserService
 }
 
-func (h *userHandler) isSameAccount(w http.ResponseWriter, id uint64, tokenId uint64) bool {
-	if id != tokenId {
-		response.Erro(w, http.StatusForbidden, errors.New("account doesn't match"))
-		return false
-	}
-	return true
+func NewUserHandler(service service.UserService) UserHandler {
+	return &userHandler{service: service}
 }
 
-// Isso Tbm é handler
+// essa função ta esquisita
 func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	requestBody, err := io.ReadAll(r.Body)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		response.Erro(w, http.StatusUnprocessableEntity, err)
 		return
 	}
 
 	var user model.User
-	//throws to user struct
-	if err = json.Unmarshal(requestBody, &user); err != nil {
+	if err = json.Unmarshal(body, &user); err != nil {
 		response.Erro(w, http.StatusBadRequest, err)
 		return
 	}
 
-	if err = user.Prepare("register"); err != nil {
-		response.Erro(w, http.StatusBadRequest, err)
-		return
-	}
-
-	db, err := dbconfig.Connect()
-	if err != nil {
-		response.Erro(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
-	repo := repository.New(db)
-	user.ID, err = repo.Create(user)
+	// aqui como que ela retorna um id???
+	id, err := h.service.Create(&user)
 	if err != nil {
 		response.Erro(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	response.JSON(w, http.StatusAccepted, user.ID)
+	response.JSON(w, http.StatusAccepted, id)
 }
 
 func (h *userHandler) GetUser(w http.ResponseWriter, r *http.Request) {
@@ -83,24 +64,16 @@ func (h *userHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 		response.Erro(w, http.StatusInternalServerError, err)
 		return
 	}
+
 	defer db.Close()
 
-	repo := repository.New(db)
-	if nameOrNick != "" {
-		users, err := repo.FindUserByID(nameOrNick)
-		if err != nil {
-			response.Erro(w, http.StatusInternalServerError, err)
-			return
-		}
-		response.JSON(w, http.StatusOK, users)
-	} else {
-		users, err := repo.FindUsers()
-		if err != nil {
-			response.Erro(w, http.StatusInternalServerError, err)
-			return
-		}
-		response.JSON(w, http.StatusOK, users)
+	users, err := h.service.Get(nameOrNick)
+	if err != nil {
+		response.Erro(w, http.StatusInternalServerError, err)
+		return
 	}
+
+	response.JSON(w, http.StatusOK, users)
 }
 
 func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
@@ -114,11 +87,6 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	tokenUserId, err := authentication.ExtractUserId(r)
 	if err != nil {
 		response.Erro(w, http.StatusUnauthorized, err)
-		return
-	}
-
-	check := h.isSameAccount(w, userId, tokenUserId)
-	if !check {
 		return
 	}
 
@@ -145,10 +113,9 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	repo := repository.New(db)
-	if err = repo.Update(userId, *user); err != nil {
-		response.Erro(w, http.StatusInternalServerError, err)
-		return
+	err = h.service.Update(userId, user, tokenUserId)
+	if err != nil {
+		response.Erro(w, http.StatusForbidden, err)
 	}
 
 	response.JSON(w, http.StatusNoContent, nil)
@@ -156,20 +123,47 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	userId, err := strconv.ParseUint(params["userId"], 10, 64)
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
 	if err != nil {
 		response.Erro(w, http.StatusBadRequest, err)
 		return
 	}
 
-	tokenUserId, err := authentication.ExtractUserId(r)
+	tokenUserID, err := authentication.ExtractUserId(r)
 	if err != nil {
 		response.Erro(w, http.StatusUnauthorized, err)
 		return
 	}
 
-	check := h.isSameAccount(w, userId, tokenUserId)
-	if !check {
+	db, err := dbconfig.Connect()
+	if err != nil {
+		response.Erro(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+	err = h.service.Delete(userID, tokenUserID)
+	if err != nil {
+		response.Erro(w, http.StatusForbidden, err)
+	}
+
+	response.JSON(w, http.StatusNoContent, nil)
+}
+
+func (h *userHandler) Follow(w http.ResponseWriter, r *http.Request) {
+	followerID, err := authentication.ExtractUserId(r)
+	if err != nil {
+		response.Erro(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	params := mux.Vars(r)
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		response.Erro(w, http.StatusBadRequest, err)
+	}
+
+	if userID == followerID {
+		response.Erro(w, http.StatusForbidden, errors.New("can't follow yourself!"))
 		return
 	}
 
@@ -180,11 +174,8 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	repo := repository.New(db)
-	if err = repo.Delete(userId); err != nil {
-		response.Erro(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	response.JSON(w, http.StatusNoContent, nil)
 }
+
+//	TODO create a package for this guy :
+// strconv.ParseUint(params["userId"], 10, 64)
+// TODO REFACT TO MAKE A SERVICE FOR THIS SHIT

@@ -5,38 +5,43 @@ import (
 	"v1/monorepo/handlers"
 )
 
-// TODO entender mais sobre isso aqui
-// Esse depois vou refatorar para ser handler?
 const (
-	UriALL  = "/users"
-	UriByID = "/users/{userId}"
+	UriALL        = "/users"
+	UriByID       = "/users/{userId}"
+	UriFollowByID = "/users/{userId}/follow"
 )
 
-var Handlers = handlers.NewUserHandler()
-
-var userRoutes = []Route{
-	{
-		URI:         UriALL,
-		Method:      http.MethodPost,
-		Function:    Handlers.CreateUser,
-		RequireAuth: false,
-	},
-	{
-		URI:         UriALL,
-		Method:      http.MethodGet,
-		Function:    Handlers.GetUser,
-		RequireAuth: true,
-	},
-	{
-		URI:         UriByID,
-		Method:      http.MethodPut,
-		Function:    Handlers.UpdateUser,
-		RequireAuth: true,
-	},
-	{
-		URI:         UriByID,
-		Method:      http.MethodDelete,
-		Function:    Handlers.DeleteUser,
-		RequireAuth: true,
-	},
+func GetUserRoutes(h handlers.UserHandler) []Route {
+	return []Route{
+		{
+			URI:         UriALL,
+			Method:      http.MethodPost,
+			Function:    h.CreateUser,
+			RequireAuth: false,
+		},
+		{
+			URI:         UriALL,
+			Method:      http.MethodGet,
+			Function:    h.GetUser,
+			RequireAuth: true,
+		},
+		{
+			URI:         UriByID,
+			Method:      http.MethodPut,
+			Function:    h.UpdateUser,
+			RequireAuth: true,
+		},
+		{
+			URI:         UriByID,
+			Method:      http.MethodDelete,
+			Function:    h.DeleteUser,
+			RequireAuth: true,
+		},
+		{
+			URI:         UriFollowByID,
+			Method:      http.MethodPost,
+			Function:    h.Follow,
+			RequireAuth: true,
+		},
+	}
 }

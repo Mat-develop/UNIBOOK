@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"v1/monorepo/handlers"
 	m "v1/monorepo/util/middleware"
 
 	"github.com/gorilla/mux"
@@ -14,9 +15,10 @@ type Route struct {
 	RequireAuth bool
 }
 
+// will hava to add login handler after
 // Puts all routes inside router
-func Config(r *mux.Router) *mux.Router {
-	routes := userRoutes
+func Config(r *mux.Router, userHandler handlers.UserHandler) *mux.Router {
+	routes := GetUserRoutes(userHandler)
 	routes = append(routes, routeLogin)
 
 	for _, route := range routes {
@@ -26,6 +28,5 @@ func Config(r *mux.Router) *mux.Router {
 			r.HandleFunc(route.URI, m.Logger(route.Function)).Methods(route.Method)
 		}
 	}
-
 	return r
 }

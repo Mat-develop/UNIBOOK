@@ -17,16 +17,25 @@ const (
 	findByEmailQuery  = "SELECT id, password FROM users WHERE email = ?"
 )
 
-type users struct {
+type UserRepository interface {
+	Create(user model.User) (uint64, error)
+	FindUserByID(userNameOrNick string) ([]model.User, error)
+	FindUsers() ([]model.User, error)
+	Update(ID uint64, user model.User) error
+	Delete(ID uint64) error
+	FindUserByEmail(email string) (model.User, error)
+}
+
+type userRepository struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *users {
-	return &users{db}
+func NewUserRepository(db *sql.DB) UserRepository {
+	return &userRepository{db: db}
 }
 
 // Insert inside the DB
-func (u *users) Create(user model.User) (uint64, error) {
+func (u *userRepository) Create(user model.User) (uint64, error) {
 	stm, err := u.db.Prepare(
 		createQuery,
 	)
@@ -49,7 +58,7 @@ func (u *users) Create(user model.User) (uint64, error) {
 	return uint64(lastID), nil
 }
 
-func (u *users) FindUserByID(userNameOrNick string) ([]model.User, error) {
+func (u *userRepository) FindUserByID(userNameOrNick string) ([]model.User, error) {
 	userNameOrNick = fmt.Sprintf("%%%s", userNameOrNick) // to use like %name%
 
 	rows, err := u.db.Query(
@@ -79,11 +88,11 @@ func (u *users) FindUserByID(userNameOrNick string) ([]model.User, error) {
 
 		users = append(users, user)
 	}
-	return users, nil
 
+	return users, nil
 }
 
-func (u *users) FindUsers() ([]model.User, error) {
+func (u *userRepository) FindUsers() ([]model.User, error) {
 	rows, err := u.db.Query(
 		findAllQuery,
 	)
@@ -112,7 +121,7 @@ func (u *users) FindUsers() ([]model.User, error) {
 	return users, nil
 }
 
-func (u *users) Update(ID uint64, user model.User) error {
+func (u *userRepository) Update(ID uint64, user model.User) error {
 	stm, err := u.db.Prepare(
 		updateQuery,
 	)
@@ -120,14 +129,13 @@ func (u *users) Update(ID uint64, user model.User) error {
 		return err
 	}
 	defer stm.Close()
-	// TODO dando pau aqui se vira pra arrumar isso matheus do futuro
 	if _, err = stm.Exec(user.Name, user.Nick, user.Email, ID); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (u *users) Delete(ID uint64) error {
+func (u *userRepository) Delete(ID uint64) error {
 	stm, err := u.db.Prepare(
 		deleteQuery,
 	)
@@ -142,7 +150,7 @@ func (u *users) Delete(ID uint64) error {
 	return nil
 }
 
-func (u *users) FindUserByEmail(email string) (model.User, error) {
+func (u *userRepository) FindUserByEmail(email string) (model.User, error) {
 
 	row, err := u.db.Query(
 		findByEmailQuery,

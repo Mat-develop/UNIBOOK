@@ -31,7 +31,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	repo := repository.New(db)
+	repo := repository.NewUserRepository(db)
 	userAuth, err := repo.FindUserByEmail(user.Email)
 	if err != nil {
 		response.Erro(w, http.StatusInternalServerError, err)
