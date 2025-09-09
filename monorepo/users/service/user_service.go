@@ -10,7 +10,7 @@ type UserService interface {
 	Create(user *model.User) (uint64, error)
 	Get(nameOrNick string) ([]model.User, error)
 	Update(userID uint64, userModel *model.User, tokenID uint64) error
-	Follow(userId, followerID uint64) error
+	Follow(userId uint64, followerID uint64) error
 	Delete(userID uint64, tokenID uint64) error
 }
 
@@ -26,6 +26,7 @@ func (s *userService) Create(user *model.User) (uint64, error) {
 	if err := user.Prepare("register"); err != nil {
 		return 0, err
 	}
+
 	return s.repo.Create(*user)
 }
 
@@ -45,6 +46,7 @@ func (s *userService) Update(userID uint64, updated *model.User, tokenID uint64)
 	if err := updated.Prepare("edit"); err != nil {
 		return err
 	}
+
 	return s.repo.Update(userID, *updated)
 }
 
@@ -52,6 +54,7 @@ func (s *userService) Delete(userID uint64, tokenID uint64) error {
 	if userID != tokenID {
 		return errors.New("account doesn't match")
 	}
+
 	return s.repo.Delete(userID)
 }
 
@@ -59,6 +62,6 @@ func (s *userService) Follow(userID, followerID uint64) error {
 	if userID == followerID {
 		return errors.New("you can't follow yourself")
 	}
-	// Implement repo.Follow(userID, followerID)
-	return nil
+
+	return s.repo.Follow(userID, followerID)
 }

@@ -15,6 +15,7 @@ const (
 	updateQuery       = "UPDATE users SET name = ?, nick = ?, email = ? WHERE id = ?;"
 	deleteQuery       = "DELETE FROM users WHERE id = ?;"
 	findByEmailQuery  = "SELECT id, password FROM users WHERE email = ?"
+	followQuery       = "INSERT IGNORE INTO followers (user_id, follower_id) values(?, ?)"
 )
 
 type UserRepository interface {
@@ -24,6 +25,7 @@ type UserRepository interface {
 	Update(ID uint64, user model.User) error
 	Delete(ID uint64) error
 	FindUserByEmail(email string) (model.User, error)
+	Follow(userId, followerID uint64) error
 }
 
 type userRepository struct {
@@ -173,4 +175,19 @@ func (u *userRepository) FindUserByEmail(email string) (model.User, error) {
 
 	return user, nil
 
+}
+
+func (u *userRepository) Follow(userId, followerID uint64) error {
+
+	stm, err := u.db.Prepare(followQuery)
+	if err != nil {
+		return err
+	}
+	defer stm.Close()
+
+	if _, err = stm.Exec(userId, followerID); err != nil {
+		return err
+	}
+
+	return nil
 }

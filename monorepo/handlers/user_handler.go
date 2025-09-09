@@ -32,7 +32,6 @@ func NewUserHandler(service service.UserService) UserHandler {
 	return &userHandler{service: service}
 }
 
-// essa função ta esquisita
 func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -46,7 +45,6 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// aqui como que ela retorna um id???
 	id, err := h.service.Create(&user)
 	if err != nil {
 		response.Erro(w, http.StatusInternalServerError, err)
@@ -163,7 +161,7 @@ func (h *userHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if userID == followerID {
-		response.Erro(w, http.StatusForbidden, errors.New("can't follow yourself!"))
+		response.Erro(w, http.StatusForbidden, errors.New("can't follow yourself"))
 		return
 	}
 
@@ -174,8 +172,11 @@ func (h *userHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-}
+	err = h.service.Follow(userID, followerID)
+	if err != nil {
+		response.Erro(w, http.StatusInternalServerError, err)
+		return
+	}
 
-//	TODO create a package for this guy :
-// strconv.ParseUint(params["userId"], 10, 64)
-// TODO REFACT TO MAKE A SERVICE FOR THIS SHIT
+	response.JSON(w, http.StatusNoContent, err)
+}
