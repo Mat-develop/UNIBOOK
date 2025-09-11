@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	UriALL        = "/users"
-	UriByID       = "/users/{userId}"
-	UriFollowByID = "/users/{userId}/follow"
+	UriALL          = "/users"
+	UriByID         = "/users/{userId}"
+	UriFollowByID   = "/users/{userId}/follow"
+	UriUnfollowByID = "/users/{userId}/unfollow"
 )
 
 func GetUserRoutes(h handlers.UserHandler) []Route {
@@ -39,6 +40,12 @@ func GetUserRoutes(h handlers.UserHandler) []Route {
 		},
 		{
 			URI:         UriFollowByID,
+			Method:      http.MethodPost,
+			Function:    h.Follow,
+			RequireAuth: true,
+		},
+		{
+			URI:         UriUnfollowByID,
 			Method:      http.MethodPost,
 			Function:    h.Follow,
 			RequireAuth: true,

@@ -16,6 +16,7 @@ const (
 	deleteQuery       = "DELETE FROM users WHERE id = ?;"
 	findByEmailQuery  = "SELECT id, password FROM users WHERE email = ?"
 	followQuery       = "INSERT IGNORE INTO followers (user_id, follower_id) values(?, ?)"
+	unfollowQuery     = "DELETE FROM followers WHERE user_id = ? AND follower_id = ?"
 )
 
 type UserRepository interface {
@@ -26,6 +27,7 @@ type UserRepository interface {
 	Delete(ID uint64) error
 	FindUserByEmail(email string) (model.User, error)
 	Follow(userId, followerID uint64) error
+	Unfollow(userId, followerID uint64) error
 }
 
 type userRepository struct {
@@ -180,6 +182,21 @@ func (u *userRepository) FindUserByEmail(email string) (model.User, error) {
 func (u *userRepository) Follow(userId, followerID uint64) error {
 
 	stm, err := u.db.Prepare(followQuery)
+	if err != nil {
+		return err
+	}
+	defer stm.Close()
+
+	if _, err = stm.Exec(userId, followerID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (u *userRepository) Unfollow(userId, followerID uint64) error {
+
+	stm, err := u.db.Prepare(unfollowQuery)
 	if err != nil {
 		return err
 	}

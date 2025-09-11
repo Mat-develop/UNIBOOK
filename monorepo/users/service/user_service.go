@@ -10,7 +10,7 @@ type UserService interface {
 	Create(user *model.User) (uint64, error)
 	Get(nameOrNick string) ([]model.User, error)
 	Update(userID uint64, userModel *model.User, tokenID uint64) error
-	Follow(userId uint64, followerID uint64) error
+	Follow(userId uint64, followerID uint64, follow bool) error
 	Delete(userID uint64, tokenID uint64) error
 }
 
@@ -58,10 +58,14 @@ func (s *userService) Delete(userID uint64, tokenID uint64) error {
 	return s.repo.Delete(userID)
 }
 
-func (s *userService) Follow(userID, followerID uint64) error {
+func (s *userService) Follow(userID, followerID uint64, follow bool) error {
 	if userID == followerID {
-		return errors.New("you can't follow yourself")
+		return errors.New("same ID, not possible")
 	}
 
-	return s.repo.Follow(userID, followerID)
+	if follow {
+		return s.repo.Follow(userID, followerID)
+	}
+
+	return s.repo.Unfollow(userID, followerID)
 }

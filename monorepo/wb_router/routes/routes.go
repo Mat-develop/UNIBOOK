@@ -28,5 +28,6 @@ func Config(r *mux.Router, userHandler handlers.UserHandler) *mux.Router {
 			r.HandleFunc(route.URI, m.Logger(route.Function)).Methods(route.Method)
 		}
 	}
+
 	return r
 }

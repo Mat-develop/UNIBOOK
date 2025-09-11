@@ -160,11 +160,6 @@ func (h *userHandler) Follow(w http.ResponseWriter, r *http.Request) {
 		response.Erro(w, http.StatusBadRequest, err)
 	}
 
-	if userID == followerID {
-		response.Erro(w, http.StatusForbidden, errors.New("can't follow yourself"))
-		return
-	}
-
 	db, err := dbconfig.Connect()
 	if err != nil {
 		response.Erro(w, http.StatusInternalServerError, err)
@@ -172,7 +167,12 @@ func (h *userHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	err = h.service.Follow(userID, followerID)
+	follow := false
+	if strings.Contains(r.URL.Path, "/follow") {
+		follow = true
+	}
+
+	err = h.service.Follow(userID, followerID, follow)
 	if err != nil {
 		response.Erro(w, http.StatusInternalServerError, err)
 		return
