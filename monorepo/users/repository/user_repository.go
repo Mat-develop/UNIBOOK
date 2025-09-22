@@ -19,6 +19,8 @@ const (
 	unfollowQuery      = "DELETE FROM followers WHERE user_id = ? AND follower_id = ?"
 	findFollowersQuery = `select u.id, u.nome, u.nick, u.image_url, u.created_at 
 	from users u inner join followers f on u.id  = f.follower_id where f.user_id = ?`
+	findFollowingQuery = `select u.id, u.nome, u.nick, u.image_url, u.created_at 
+	from users u inner join followers f on u.id  = f.user_id where u.follower_id = ?`
 )
 
 type UserRepository interface {
@@ -31,6 +33,7 @@ type UserRepository interface {
 	Follow(userId, followerID uint64) error
 	Unfollow(userId, followerID uint64) error
 	FindFollowers(userId uint64) ([]model.User, error)
+	FindFollowing(userId uint64) ([]model.User, error)
 }
 
 type userRepository struct {
@@ -215,6 +218,38 @@ func (u *userRepository) Unfollow(userId, followerID uint64) error {
 func (u *userRepository) FindFollowers(userId uint64) ([]model.User, error) {
 	rows, err := u.db.Query(
 		findFollowersQuery,
+		userId,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	var users []model.User
+
+	for rows.Next() {
+		var user model.User
+
+		if err = rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Nick,
+			&user.ImageUrl,
+			&user.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (u *userRepository) FindFollowing(userId uint64) ([]model.User, error) {
+	rows, err := u.db.Query(
+		findFollowingQuery,
 		userId,
 	)
 

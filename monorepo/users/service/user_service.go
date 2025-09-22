@@ -12,7 +12,7 @@ type UserService interface {
 	Update(userID uint64, userModel *model.User, tokenID uint64) error
 	Follow(userId uint64, followerID uint64, follow bool) error
 	Delete(userID uint64, tokenID uint64) error
-	GetFollowers(userID uint64, tokenID uint64) ([]model.User, error)
+	GetFollowers(userID uint64, tokenID uint64, my bool) ([]model.User, error)
 }
 
 type userService struct {
@@ -71,10 +71,14 @@ func (s *userService) Follow(userID, followerID uint64, follow bool) error {
 	return s.repo.Unfollow(userID, followerID)
 }
 
-func (s *userService) GetFollowers(userID uint64, tokenID uint64) ([]model.User, error) {
+func (s *userService) GetFollowers(userID uint64, tokenID uint64, my bool) ([]model.User, error) {
 	if userID != tokenID {
 		return nil, errors.New("account doesn't match")
 	}
 
-	return s.repo.FindFollowers(userID)
+	if my {
+		return s.repo.FindFollowers(userID)
+	}
+
+	return s.repo.FindFollowing(userID)
 }

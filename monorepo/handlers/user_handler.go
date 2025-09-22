@@ -23,6 +23,7 @@ type UserHandler interface {
 	DeleteUser(w http.ResponseWriter, r *http.Request)
 	Follow(w http.ResponseWriter, r *http.Request)
 	Followers(w http.ResponseWriter, r *http.Request)
+	Following(w http.ResponseWriter, r *http.Request)
 }
 
 type userHandler struct {
@@ -196,7 +197,32 @@ func (h *userHandler) Followers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	followers, err := h.service.GetFollowers(userID, userToken)
+	my := true
+	followers, err := h.service.GetFollowers(userID, userToken, my)
+	if err != nil {
+		response.Erro(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, followers)
+}
+
+func (h *userHandler) Following(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		response.Erro(w, http.StatusBadRequest, err)
+		return
+	}
+
+	userToken, err := authentication.ExtractUserId(r)
+	if err != nil {
+		response.Erro(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	my := false
+	followers, err := h.service.GetFollowers(userID, userToken, my)
 	if err != nil {
 		response.Erro(w, http.StatusInternalServerError, err)
 		return
