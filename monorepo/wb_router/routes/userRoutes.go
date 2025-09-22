@@ -10,6 +10,7 @@ const (
 	UriByID         = "/users/{userId}"
 	UriFollowByID   = "/users/{userId}/follow"
 	UriUnfollowByID = "/users/{userId}/unfollow"
+	UriFollowers    = "/users/{userId}/followers"
 )
 
 func GetUserRoutes(h handlers.UserHandler) []Route {
@@ -46,6 +47,12 @@ func GetUserRoutes(h handlers.UserHandler) []Route {
 		},
 		{
 			URI:         UriUnfollowByID,
+			Method:      http.MethodPost,
+			Function:    h.Follow,
+			RequireAuth: true,
+		},
+		{
+			URI:         UriFollowers,
 			Method:      http.MethodPost,
 			Function:    h.Follow,
 			RequireAuth: true,

@@ -7,16 +7,18 @@ import (
 )
 
 const (
-	columns           = "(name, nick, email, password, image_url)"
-	columnsNoPassword = "id ,name, nick, created_at"
-	createQuery       = "INSERT INTO users" + columns + "VALUES (?, ?, ?, ?, ?)"
-	findByIdQuery     = "SELECT " + columnsNoPassword + " FROM users WHERE name LIKE ? OR nick LIKE ?"
-	findAllQuery      = "SELECT " + columnsNoPassword + " FROM users"
-	updateQuery       = "UPDATE users SET name = ?, nick = ?, email = ? WHERE id = ?;"
-	deleteQuery       = "DELETE FROM users WHERE id = ?;"
-	findByEmailQuery  = "SELECT id, password FROM users WHERE email = ?"
-	followQuery       = "INSERT IGNORE INTO followers (user_id, follower_id) values(?, ?)"
-	unfollowQuery     = "DELETE FROM followers WHERE user_id = ? AND follower_id = ?"
+	columns            = "(name, nick, email, password, image_url)"
+	columnsNoPassword  = "id ,name, nick, created_at"
+	createQuery        = "INSERT INTO users" + columns + "VALUES (?, ?, ?, ?, ?)"
+	findByIdQuery      = "SELECT " + columnsNoPassword + " FROM users WHERE name LIKE ? OR nick LIKE ?"
+	findAllQuery       = "SELECT " + columnsNoPassword + " FROM users"
+	updateQuery        = "UPDATE users SET name = ?, nick = ?, email = ? WHERE id = ?;"
+	deleteQuery        = "DELETE FROM users WHERE id = ?;"
+	findByEmailQuery   = "SELECT id, password FROM users WHERE email = ?"
+	followQuery        = "INSERT IGNORE INTO followers (user_id, follower_id) values(?, ?)"
+	unfollowQuery      = "DELETE FROM followers WHERE user_id = ? AND follower_id = ?"
+	findFollowersQuery = `select u.id, u.nome, u.nick, u.image_url, u.created_at 
+	from users u inner join followers f on u.id  = f.follower_id where f.user_id = ?`
 )
 
 type UserRepository interface {
@@ -28,6 +30,7 @@ type UserRepository interface {
 	FindUserByEmail(email string) (model.User, error)
 	Follow(userId, followerID uint64) error
 	Unfollow(userId, followerID uint64) error
+	FindFollowers(userId uint64) ([]model.User, error)
 }
 
 type userRepository struct {
@@ -207,4 +210,36 @@ func (u *userRepository) Unfollow(userId, followerID uint64) error {
 	}
 
 	return nil
+}
+
+func (u *userRepository) FindFollowers(userId uint64) ([]model.User, error) {
+	rows, err := u.db.Query(
+		findFollowersQuery,
+		userId,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	var users []model.User
+
+	for rows.Next() {
+		var user model.User
+
+		if err = rows.Scan(
+			&user.ID,
+			&user.Name,
+			&user.Nick,
+			&user.ImageUrl,
+			&user.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
 }

@@ -22,6 +22,7 @@ type UserHandler interface {
 	UpdateUser(w http.ResponseWriter, r *http.Request)
 	DeleteUser(w http.ResponseWriter, r *http.Request)
 	Follow(w http.ResponseWriter, r *http.Request)
+	Followers(w http.ResponseWriter, r *http.Request)
 }
 
 type userHandler struct {
@@ -82,7 +83,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenUserId, err := authentication.ExtractUserId(r)
+	userToken, err := authentication.ExtractUserId(r)
 	if err != nil {
 		response.Erro(w, http.StatusUnauthorized, err)
 		return
@@ -111,7 +112,7 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	err = h.service.Update(userId, user, tokenUserId)
+	err = h.service.Update(userId, user, userToken)
 	if err != nil {
 		response.Erro(w, http.StatusForbidden, err)
 	}
@@ -127,7 +128,7 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokenUserID, err := authentication.ExtractUserId(r)
+	userToken, err := authentication.ExtractUserId(r)
 	if err != nil {
 		response.Erro(w, http.StatusUnauthorized, err)
 		return
@@ -139,7 +140,7 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()
-	err = h.service.Delete(userID, tokenUserID)
+	err = h.service.Delete(userID, userToken)
 	if err != nil {
 		response.Erro(w, http.StatusForbidden, err)
 	}
@@ -179,4 +180,27 @@ func (h *userHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.JSON(w, http.StatusNoContent, err)
+}
+
+func (h *userHandler) Followers(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		response.Erro(w, http.StatusBadRequest, err)
+		return
+	}
+
+	userToken, err := authentication.ExtractUserId(r)
+	if err != nil {
+		response.Erro(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	followers, err := h.service.GetFollowers(userID, userToken)
+	if err != nil {
+		response.Erro(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	response.JSON(w, http.StatusOK, followers)
 }
