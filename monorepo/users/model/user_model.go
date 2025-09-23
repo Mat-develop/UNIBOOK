@@ -19,6 +19,11 @@ type User struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 }
 
+type Password struct {
+	New string `json:"new"`
+	Old string `json:"old"`
+}
+
 func (user *User) Prepare(step string) error {
 	if err := user.validate(step); err != nil {
 		return err

@@ -24,6 +24,7 @@ type UserHandler interface {
 	Follow(w http.ResponseWriter, r *http.Request)
 	Followers(w http.ResponseWriter, r *http.Request)
 	Following(w http.ResponseWriter, r *http.Request)
+	UpdatePassword(w http.ResponseWriter, r *http.Request)
 }
 
 type userHandler struct {
@@ -229,4 +230,33 @@ func (h *userHandler) Following(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.JSON(w, http.StatusOK, followers)
+}
+
+func (h *userHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
+	userToken, err := authentication.ExtractUserId(r)
+	if err != nil {
+		response.Erro(w, http.StatusUnauthorized, err)
+		return
+	}
+
+	params := mux.Vars(r)
+	userID, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		response.Erro(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if userToken != userID {
+		response.Erro(w, http.StatusUnauthorized, errors.New("different account, action not possible"))
+		return
+	}
+
+	requestBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		response.Erro(w, http.StatusBadRequest, errors.New("error unmarshaw body"))
+		return
+	}
+
+	password := model.Password{}
+
 }
