@@ -107,13 +107,6 @@ func (h *userHandler) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		response.Erro(w, http.StatusBadRequest, err)
 	}
 
-	db, err := dbconfig.Connect()
-	if err != nil {
-		response.Erro(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
-
 	err = h.service.Update(userId, user, userToken)
 	if err != nil {
 		response.Erro(w, http.StatusForbidden, err)
@@ -136,12 +129,6 @@ func (h *userHandler) DeleteUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	db, err := dbconfig.Connect()
-	if err != nil {
-		response.Erro(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
 	err = h.service.Delete(userID, userToken)
 	if err != nil {
 		response.Erro(w, http.StatusForbidden, err)
@@ -162,13 +149,6 @@ func (h *userHandler) Follow(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		response.Erro(w, http.StatusBadRequest, err)
 	}
-
-	db, err := dbconfig.Connect()
-	if err != nil {
-		response.Erro(w, http.StatusInternalServerError, err)
-		return
-	}
-	defer db.Close()
 
 	follow := false
 	if strings.Contains(r.URL.Path, "/follow") {
@@ -246,17 +226,16 @@ func (h *userHandler) UpdatePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if userToken != userID {
-		response.Erro(w, http.StatusUnauthorized, errors.New("different account, action not possible"))
-		return
-	}
-
 	requestBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		response.Erro(w, http.StatusBadRequest, errors.New("error unmarshaw body"))
 		return
 	}
 
-	password := model.Password{}
+	if err = h.service.UpdatePassword(requestBody, userID, userToken); err != nil {
+		response.Erro(w, http.StatusBadRequest, err)
+		return
+	}
 
+	response.JSON(w, http.StatusAccepted, nil)
 }

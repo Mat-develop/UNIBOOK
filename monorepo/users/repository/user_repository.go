@@ -7,17 +7,19 @@ import (
 )
 
 const (
-	columns            = "(name, nick, email, password, image_url)"
-	columnsNoPassword  = "id ,name, nick, created_at"
-	createQuery        = "INSERT INTO users" + columns + "VALUES (?, ?, ?, ?, ?)"
-	findByIdQuery      = "SELECT " + columnsNoPassword + " FROM users WHERE name LIKE ? OR nick LIKE ?"
-	findAllQuery       = "SELECT " + columnsNoPassword + " FROM users"
-	updateQuery        = "UPDATE users SET name = ?, nick = ?, email = ? WHERE id = ?;"
-	deleteQuery        = "DELETE FROM users WHERE id = ?;"
-	findByEmailQuery   = "SELECT id, password FROM users WHERE email = ?"
-	followQuery        = "INSERT IGNORE INTO followers (user_id, follower_id) values(?, ?)"
-	unfollowQuery      = "DELETE FROM followers WHERE user_id = ? AND follower_id = ?"
-	findFollowersQuery = `select u.id, u.nome, u.nick, u.image_url, u.created_at 
+	columns             = "(name, nick, email, password, image_url)"
+	columnsNoPassword   = "id ,name, nick, created_at"
+	createQuery         = "INSERT INTO users" + columns + "VALUES (?, ?, ?, ?, ?)"
+	findByNameQuery     = "SELECT " + columnsNoPassword + " FROM users WHERE name LIKE ? OR nick LIKE ?"
+	findAllQuery        = "SELECT " + columnsNoPassword + " FROM users"
+	findPasswordById    = "SELECT password from users where id = ?"
+	updateQuery         = "UPDATE users SET name = ?, nick = ?, email = ? WHERE id = ?;"
+	updatePasswordQuery = "UPDATE users SET password = ? where id = ?;"
+	deleteQuery         = "DELETE FROM users WHERE id = ?;"
+	findByEmailQuery    = "SELECT id, password FROM users WHERE email = ?"
+	followQuery         = "INSERT IGNORE INTO followers (user_id, follower_id) values(?, ?)"
+	unfollowQuery       = "DELETE FROM followers WHERE user_id = ? AND follower_id = ?"
+	findFollowersQuery  = `select u.id, u.nome, u.nick, u.image_url, u.created_at 
 	from users u inner join followers f on u.id  = f.follower_id where f.user_id = ?`
 	findFollowingQuery = `select u.id, u.nome, u.nick, u.image_url, u.created_at 
 	from users u inner join followers f on u.id  = f.user_id where u.follower_id = ?`
@@ -25,11 +27,13 @@ const (
 
 type UserRepository interface {
 	Create(user model.User) (uint64, error)
-	FindUserByID(userNameOrNick string) ([]model.User, error)
+	FindUserByName(userNameOrNick string) ([]model.User, error) // mudar para find by Name
 	FindUsers() ([]model.User, error)
 	Update(ID uint64, user model.User) error
+	UpdatePassword(ID uint64, password string) error
 	Delete(ID uint64) error
 	FindUserByEmail(email string) (model.User, error)
+	FindPasswordById(ID uint64) (string, error)
 	Follow(userId, followerID uint64) error
 	Unfollow(userId, followerID uint64) error
 	FindFollowers(userId uint64) ([]model.User, error)
@@ -68,11 +72,11 @@ func (u *userRepository) Create(user model.User) (uint64, error) {
 	return uint64(lastID), nil
 }
 
-func (u *userRepository) FindUserByID(userNameOrNick string) ([]model.User, error) {
+func (u *userRepository) FindUserByName(userNameOrNick string) ([]model.User, error) {
 	userNameOrNick = fmt.Sprintf("%%%s", userNameOrNick) // to use like %name%
 
 	rows, err := u.db.Query(
-		findByIdQuery,
+		findByNameQuery,
 		userNameOrNick,
 		userNameOrNick,
 	)
@@ -129,6 +133,24 @@ func (u *userRepository) FindUsers() ([]model.User, error) {
 		users = append(users, user)
 	}
 	return users, nil
+}
+
+func (u *userRepository) FindPasswordById(ID uint64) (string, error) {
+	rows, err := u.db.Query(findAllQuery)
+	if err != nil {
+		return "", err
+	}
+
+	defer rows.Close()
+	var user model.User
+
+	for rows.Next() {
+		if err = rows.Scan(&user.Password); err != nil {
+			return "", err
+		}
+	}
+
+	return user.Password, nil
 }
 
 func (u *userRepository) Update(ID uint64, user model.User) error {
@@ -277,4 +299,18 @@ func (u *userRepository) FindFollowing(userId uint64) ([]model.User, error) {
 	}
 
 	return users, nil
+}
+
+func (u *userRepository) UpdatePassword(ID uint64, password string) error {
+	stm, err := u.db.Prepare(updatePasswordQuery)
+	if err != nil {
+		return err
+	}
+	defer stm.Close()
+
+	if _, err = stm.Exec(password, ID); err != nil {
+		return err
+	}
+
+	return nil
 }

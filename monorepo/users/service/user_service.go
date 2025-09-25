@@ -1,15 +1,18 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"v1/monorepo/users/model"
 	"v1/monorepo/users/repository"
+	"v1/monorepo/util/authentication"
 )
 
 type UserService interface {
 	Create(user *model.User) (uint64, error)
 	Get(nameOrNick string) ([]model.User, error)
 	Update(userID uint64, userModel *model.User, tokenID uint64) error
+	UpdatePassword(requestBody []byte, userID uint64, userToken uint64) error
 	Follow(userId uint64, followerID uint64, follow bool) error
 	Delete(userID uint64, tokenID uint64) error
 	GetFollowers(userID uint64, tokenID uint64, my bool) ([]model.User, error)
@@ -33,7 +36,7 @@ func (s *userService) Create(user *model.User) (uint64, error) {
 
 func (s *userService) Get(nameOrNick string) ([]model.User, error) {
 	if nameOrNick != "" {
-		return s.repo.FindUserByID(nameOrNick)
+		return s.repo.FindUserByName(nameOrNick)
 	}
 
 	return nil, errors.New("name or nick search null, nothing to find")
@@ -81,4 +84,35 @@ func (s *userService) GetFollowers(userID uint64, tokenID uint64, my bool) ([]mo
 	}
 
 	return s.repo.FindFollowing(userID)
+}
+
+func (s *userService) UpdatePassword(requestBody []byte, userID uint64, userToken uint64) error {
+	if userToken != userID {
+		return errors.New("different account, action not possible")
+	}
+
+	password := model.Password{}
+	if err := json.Unmarshal(requestBody, &password); err != nil {
+		return errors.New("error unmarshaw body")
+	}
+
+	existingPassword, err := s.repo.FindPasswordById(userID)
+	if err != nil {
+		return errors.New("error finding existing password")
+	}
+
+	if err := authentication.Verify(existingPassword, password.New); err != nil {
+		return errors.New("unauthorized")
+	}
+
+	hashPassword, err := authentication.Hash(password.New)
+	if err != nil {
+		return errors.New("error on transforming password")
+	}
+
+	if err := s.repo.UpdatePassword(userID, string(hashPassword)); err != nil {
+		return errors.New("error updating password")
+	}
+
+	return nil
 }
