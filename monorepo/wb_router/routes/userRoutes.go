@@ -6,24 +6,24 @@ import (
 )
 
 const (
-	UriALL            = "/users"
-	UriByID           = "/users/{userId}"
-	UriFollowByID     = "/users/{userId}/follow"
-	UriUnfollowByID   = "/users/{userId}/unfollow"
-	UriFollowers      = "/users/{userId}/followers"
-	UriUpdatePassword = "/users/{userId}/update-password"
+	User              = "/users"
+	UriByID           = User + "/{userId}"
+	UriFollowByID     = User + "/{userId}/follow"
+	UriUnfollowByID   = User + "/{userId}/unfollow"
+	UriFollowers      = User + "/{userId}/followers"
+	UriUpdatePassword = User + "/{userId}/update-password"
 )
 
 func GetUserRoutes(h handlers.UserHandler) []Route {
 	return []Route{
 		{
-			URI:         UriALL,
+			URI:         User,
 			Method:      http.MethodPost,
 			Function:    h.CreateUser,
 			RequireAuth: false,
 		},
 		{
-			URI:         UriALL,
+			URI:         User,
 			Method:      http.MethodGet,
 			Function:    h.GetUser,
 			RequireAuth: true,
