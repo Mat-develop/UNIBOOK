@@ -6,7 +6,9 @@ import (
 )
 
 const (
-	Post = "/post"
+	Post        = "/post"
+	PostByTitle = Post + "{title}"
+	PostById    = Post + "{PostId}"
 )
 
 // dps faço o restante
@@ -22,6 +24,24 @@ func GetPostRoutes(h handlers.UserHandler) []Route {
 			URI:         Post,
 			Method:      http.MethodGet,
 			Function:    h.GetPosts,
+			RequireAuth: true,
+		},
+		{
+			URI:         PostByTitle,
+			Method:      http.MethodGet,
+			Function:    h.GetPostByTittle,
+			RequireAuth: true,
+		},
+		{
+			URI:         PostById,
+			Method:      http.MethodPut,
+			Function:    h.UpdatePost,
+			RequireAuth: true,
+		},
+		{
+			URI:         PostById,
+			Method:      http.MethodDelete,
+			Function:    h.DeletePost,
 			RequireAuth: true,
 		},
 	}
