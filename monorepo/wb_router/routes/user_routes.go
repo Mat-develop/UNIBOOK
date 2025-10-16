@@ -60,7 +60,7 @@ func GetUserRoutes(h handlers.UserHandler) []Route {
 		},
 		{
 			URI:         UriUpdatePassword,
-			Method:      http.MethodGet,
+			Method:      http.MethodPut,
 			Function:    h.UpdatePassword,
 			RequireAuth: true,
 		},

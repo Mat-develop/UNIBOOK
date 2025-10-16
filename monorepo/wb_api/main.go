@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"v1/monorepo/handlers"
+	postRepo "v1/monorepo/post/repository"
+	postServ "v1/monorepo/post/service"
 	"v1/monorepo/users/repository"
 	"v1/monorepo/users/service"
 	dbconfig "v1/monorepo/util/db_config"
@@ -39,7 +41,11 @@ func main() {
 	userService := service.NewUserService(userRepo)
 	userHandler := handlers.NewUserHandler(userService)
 
+	postRepository := postRepo.NewPostRepository(db)
+	postService := postServ.NewPostService(postRepository)
+	postHandler := handlers.NewPostHandler(postService)
+
 	r := mux.NewRouter()
-	r = routes.Config(r, userHandler)
+	r = routes.Config(r, userHandler, postHandler)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r))
 }

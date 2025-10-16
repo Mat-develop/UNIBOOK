@@ -17,9 +17,10 @@ type Route struct {
 
 // will hava to add login handler after
 // Puts all routes inside router
-func Config(r *mux.Router, userHandler handlers.UserHandler) *mux.Router {
+func Config(r *mux.Router, userHandler handlers.UserHandler, postHandler handlers.PostHandler) *mux.Router {
 	routes := GetUserRoutes(userHandler)
 	routes = append(routes, routeLogin)
+	routes = append(routes, GetPostRoutes(postHandler)...)
 
 	for _, route := range routes {
 		if route.RequireAuth {

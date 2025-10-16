@@ -1,19 +1,19 @@
 package service
 
-import "v1/monorepo/post/model"
+import "v1/monorepo/post/repository"
 
 type PostService interface {
-	GetPost(accId uint) []model.Post
-	GetPostByName() []model.Post
-	CreatePost()
-	UpdatePost()
-	DeletePost()
+	// GetPost(accId uint) []model.Post
+	// GetPostByName() []model.Post
+	// CreatePost()
+	// UpdatePost()
+	// DeletePost()
 }
 
 type postService struct {
-	postRepo repository
+	postRepository repository.PostRepository
 }
 
-func NewPostService(postRepo repository) PostService {
-
+func NewPostService(postRepository repository.PostRepository) PostService {
+	return &postService{postRepository: postRepository}
 }

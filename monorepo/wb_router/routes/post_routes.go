@@ -12,7 +12,7 @@ const (
 )
 
 // dps faço o restante
-func GetPostRoutes(h handlers.UserHandler) []Route {
+func GetPostRoutes(h handlers.PostHandler) []Route {
 	return []Route{
 		{
 			URI:         Post,

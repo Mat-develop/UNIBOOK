@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"net/http"
-	"v1/monorepo/users/service"
+	"v1/monorepo/post/service"
 )
 
 type PostHandler interface {
@@ -18,11 +18,11 @@ type postHandler struct {
 }
 
 func NewPostHandler(handlerService service.PostService) PostHandler {
-
+	return &postHandler{service: handlerService}
 }
 
-func GetPosts(w http.ResponseWriter, r *http.Request)        {}
-func GetPostByTittle(w http.ResponseWriter, r *http.Request) {}
-func CreatePost(w http.ResponseWriter, r *http.Request)      {}
-func UpdatePost(w http.ResponseWriter, r *http.Request)      {}
-func DeletePost(w http.ResponseWriter, r *http.Request)      {}
+func (p *postHandler) GetPosts(w http.ResponseWriter, r *http.Request)        {}
+func (p *postHandler) GetPostByTittle(w http.ResponseWriter, r *http.Request) {}
+func (p *postHandler) CreatePost(w http.ResponseWriter, r *http.Request)      {}
+func (p *postHandler) UpdatePost(w http.ResponseWriter, r *http.Request)      {}
+func (p *postHandler) DeletePost(w http.ResponseWriter, r *http.Request)      {}
