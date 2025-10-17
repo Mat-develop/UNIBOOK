@@ -11,3 +11,8 @@ type Post struct {
 	Likes      int32     `json:"likes"`
 	CreatedAt  time.Time `json:"createdAt"`
 }
+
+type PostDTO struct {
+	Title string `json:"title,omitempty"`
+	Body  string `json:"body,omitempty"`
+}

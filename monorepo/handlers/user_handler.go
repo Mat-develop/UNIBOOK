@@ -10,7 +10,6 @@ import (
 	"v1/monorepo/users/model"
 	"v1/monorepo/users/service"
 	"v1/monorepo/util/authentication"
-	dbconfig "v1/monorepo/util/db_config"
 	"v1/monorepo/util/response"
 
 	"github.com/gorilla/mux"
@@ -59,15 +58,6 @@ func (h *userHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userHandler) GetUser(w http.ResponseWriter, r *http.Request) {
 	nameOrNick := strings.ToLower(r.URL.Query().Get("user"))
-
-	db, err := dbconfig.Connect()
-	if err != nil {
-		response.Erro(w, http.StatusInternalServerError, err)
-		return
-	}
-
-	defer db.Close()
-
 	users, err := h.service.Get(nameOrNick)
 	if err != nil {
 		response.Erro(w, http.StatusInternalServerError, err)
