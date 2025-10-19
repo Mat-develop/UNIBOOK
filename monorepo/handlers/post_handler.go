@@ -4,15 +4,20 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strconv"
 	"v1/monorepo/post/model"
 	"v1/monorepo/post/service"
 	"v1/monorepo/util/authentication"
 	"v1/monorepo/util/response"
+
+	"github.com/gorilla/mux"
 )
 
 type PostHandler interface {
-	GetPosts(w http.ResponseWriter, r *http.Request)
+	GetCommunityPosts(w http.ResponseWriter, r *http.Request)
+	GetUserPosts(w http.ResponseWriter, r *http.Request)
 	GetPostByTittle(w http.ResponseWriter, r *http.Request)
+	GetFeed(w http.ResponseWriter, r *http.Request)
 	CreatePost(w http.ResponseWriter, r *http.Request)
 	UpdatePost(w http.ResponseWriter, r *http.Request)
 	DeletePost(w http.ResponseWriter, r *http.Request)
@@ -26,8 +31,34 @@ func NewPostHandler(handlerService service.PostService) PostHandler {
 	return &postHandler{service: handlerService}
 }
 
-func (p *postHandler) GetPosts(w http.ResponseWriter, r *http.Request) {
+func (p *postHandler) GetCommunityPosts(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	communityId, err := strconv.ParseUint(params["communityId"], 10, 64)
+	if err != nil {
+		response.Erro(w, http.StatusBadRequest, err)
+	}
 
+	posts, err := p.service.GetPost(0, communityId)
+	if err != nil {
+		response.Erro(w, http.StatusBadRequest, err)
+	}
+
+	response.JSON(w, http.StatusOK, posts)
+}
+
+func (p *postHandler) GetUserPosts(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	userId, err := strconv.ParseUint(params["userId"], 10, 64)
+	if err != nil {
+		response.Erro(w, http.StatusBadRequest, err)
+	}
+
+	posts, err := p.service.GetPost(userId, 0)
+	if err != nil {
+		response.Erro(w, http.StatusBadRequest, err)
+	}
+
+	response.JSON(w, http.StatusOK, posts)
 }
 
 func (p *postHandler) GetPostByTittle(w http.ResponseWriter, r *http.Request) {
@@ -54,7 +85,15 @@ func (p *postHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	err = p.service.CreatePost(userId, postBody)
 	if err != nil {
+		response.Erro(w, http.StatusInternalServerError, err)
+		return
 	}
+
+	response.JSON(w, http.StatusCreated, nil)
+}
+
+func (p *postHandler) GetFeed(w http.ResponseWriter, r *http.Request) {
+
 }
 
 func (p *postHandler) UpdatePost(w http.ResponseWriter, r *http.Request) {

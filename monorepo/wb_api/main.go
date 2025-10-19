@@ -47,5 +47,6 @@ func main() {
 
 	r := mux.NewRouter()
 	r = routes.Config(r, userHandler, postHandler)
+	fmt.Println("Server has started")
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r))
 }

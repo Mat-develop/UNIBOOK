@@ -28,7 +28,7 @@ CREATE TABLE followers(
     on delete cascade,
     
     primary key (user_id, follower_id)
-    )
+)
     
 insert into users(name, nick, email, password)
     values 
@@ -47,7 +47,7 @@ CREATE TABLE post(
     community_id uuid, 
     foreign key (community_id)
     references communities(id)
-    ON DELETE CASCADE, -- não sei dizer se isso aqui seria o correto
+    ON DELETE CASCADE, 
 
     likes int default,  
     created_at timestamp default current_timestamp()   

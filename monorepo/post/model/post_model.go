@@ -1,18 +1,50 @@
 package model
 
-import "time"
+import (
+	"errors"
+	"strings"
+	"time"
+)
 
 type Post struct {
-	ID         uint64    `json:"id,omitempty"`
-	AuthorID   uint64    `json:"authorID,omitempty"`
-	AuthorNick string    `json:"authorNick,omitempty"`
-	Title      string    `json:"title,omitempty"`
-	Body       string    `json:"body,omitempty"`
-	Likes      int32     `json:"likes"`
-	CreatedAt  time.Time `json:"createdAt"`
+	ID          uint64    `json:"id,omitempty"`
+	CommunityId int32     `json:"community"`
+	UserId      uint64    `json:"UserId,omitempty"`
+	UserNick    string    `json:"userNick,omitempty"`
+	Title       string    `json:"title,omitempty"`
+	Body        string    `json:"body,omitempty"`
+	Likes       int32     `json:"likes"`
+	CreatedAt   time.Time `json:"createdAt"`
 }
 
 type PostDTO struct {
-	Title string `json:"title,omitempty"`
-	Body  string `json:"body,omitempty"`
+	CommunityId int32  `json:"community"`
+	Title       string `json:"title"`
+	Body        string `json:"body"`
+}
+
+func (p *PostDTO) Prepare() error {
+	if err := p.validate(); err != nil {
+		return err
+	}
+
+	p.format()
+	return nil
+}
+
+func (p *PostDTO) validate() error {
+	if p.Title == "" {
+		return errors.New("the title is empty")
+	}
+
+	if p.Body == "" {
+		return errors.New("the body is empty")
+	}
+
+	return nil
+}
+
+func (p *PostDTO) format() {
+	p.Title = strings.TrimSpace(p.Title)
+	p.Body = strings.TrimSpace(p.Body)
 }

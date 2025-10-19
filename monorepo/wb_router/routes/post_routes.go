@@ -6,9 +6,14 @@ import (
 )
 
 const (
-	Post        = "/post"
-	PostByTitle = Post + "{title}"
-	PostById    = Post + "{PostId}"
+	Post      = "/post"
+	Community = Post + "/c"
+
+	PostById      = "/{id}"
+	PostByUserId  = "/{userId}"
+	CommunityPost = Community + "/{communityId}"
+	PostByName    = Post + "/{PostId}"
+	PostByTitle   = Post + "/{title}"
 )
 
 // dps faço o restante
@@ -21,9 +26,15 @@ func GetPostRoutes(h handlers.PostHandler) []Route {
 			RequireAuth: false,
 		},
 		{
-			URI:         Post,
+			URI:         CommunityPost,
 			Method:      http.MethodGet,
-			Function:    h.GetPosts,
+			Function:    h.GetCommunityPosts,
+			RequireAuth: true,
+		},
+		{
+			URI:         PostByUserId,
+			Method:      http.MethodGet,
+			Function:    h.GetUserPosts,
 			RequireAuth: true,
 		},
 		{
