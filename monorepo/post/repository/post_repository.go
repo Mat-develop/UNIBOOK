@@ -3,13 +3,16 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"time"
 	"v1/monorepo/post/model"
 )
 
 const (
-	CreateQuery            = "INSERT INTO post (title, body, community_id, user_id ) values (?, ?, ?, ?)"
-	FindByCommunityIdQuery = "SELECT p.*, u.nick from posts p inner join users u on u.id = p.user_id where p.community_id = ?"
-	FindByUserIdQuery      = "SELECT p.*, u.nick from posts p inner join users u on u.id = p.user_id where p.user_id = ?"
+	CreateQuery            = "INSERT INTO posts (title, body, community_id, user_id) VALUES (?, ?, ?, ?)"
+	FindByCommunityIdQuery = "SELECT p.id, p.user_id, p.community_id, p.title, p.body, IFNULL(p.image_url,''), IFNULL(p.likes,0), p.created_at, u.nick FROM posts p INNER JOIN users u ON u.id = p.user_id WHERE p.community_id = ?"
+	FindByUserIdQuery      = "SELECT p.id, p.user_id, p.community_id, p.title, p.body, IFNULL(p.image_url,''), IFNULL(p.likes,0), p.created_at, u.nick FROM posts p INNER JOIN users u ON u.id = p.user_id WHERE p.user_id = ?"
+	UpdateQuery            = "UPDATE posts SET title = ?, body = ? WHERE id = ? AND user_id = ?"
+	DeleteQuery            = "DELETE FROM posts WHERE id = ? AND user_id = ?"
 )
 
 /*
@@ -40,8 +43,8 @@ type PostRepository interface {
 	FindUserPosts(userId uint64) ([]model.Post, error)
 	FindPostByName() ([]model.Post, error)
 	Create(userId uint64, postBody model.PostDTO) error
-	Update() error
-	Delete() error
+	Update(postID uint64, userID uint64, postBody model.PostDTO) error
+	Delete(postID uint64, userID uint64) error
 }
 
 type postRepository struct {
@@ -52,6 +55,42 @@ func NewPostRepository(db *sql.DB) PostRepository {
 	return &postRepository{db: db}
 }
 
+func (p *postRepository) scanPosts(rows *sql.Rows) ([]model.Post, error) {
+	posts := []model.Post{}
+	for rows.Next() {
+		var (
+			id        int64
+			userId    int64
+			community sql.NullInt64
+			title     string
+			body      string
+			imageURL  string
+			likes     int64
+			createdAt time.Time
+			userNick  string
+		)
+		if err := rows.Scan(&id, &userId, &community, &title, &body, &imageURL, &likes, &createdAt, &userNick); err != nil {
+			return nil, err
+		}
+
+		post := model.Post{
+			ID:          uint64(id),
+			CommunityId: int32(0),
+			UserId:      uint64(userId),
+			UserNick:    userNick,
+			Title:       title,
+			Body:        body,
+			Likes:       int32(likes),
+			CreatedAt:   createdAt,
+		}
+		if community.Valid {
+			post.CommunityId = int32(community.Int64)
+		}
+		posts = append(posts, post)
+	}
+	return posts, nil
+}
+
 func (p *postRepository) FindCommunityPosts(communityId uint64) ([]model.Post, error) {
 	rows, err := p.db.Query(FindByCommunityIdQuery, communityId)
 	if err != nil {
@@ -59,27 +98,7 @@ func (p *postRepository) FindCommunityPosts(communityId uint64) ([]model.Post, e
 	}
 	defer rows.Close()
 
-	posts := []model.Post{}
-
-	if rows.Next() {
-		post := model.Post{}
-		err := rows.Scan(
-			&post.ID,
-			&post.Title,
-			&post.Body,
-			&post.UserId,
-			&post.CommunityId,
-			&post.Likes,
-			&post.CreatedAt,
-		)
-		if err != nil {
-			return []model.Post{}, err
-		}
-
-		posts = append(posts, post)
-	}
-
-	return posts, nil
+	return p.scanPosts(rows)
 }
 
 func (p *postRepository) FindUserPosts(userId uint64) ([]model.Post, error) {
@@ -89,28 +108,9 @@ func (p *postRepository) FindUserPosts(userId uint64) ([]model.Post, error) {
 	}
 	defer rows.Close()
 
-	posts := []model.Post{}
-
-	if rows.Next() {
-		post := model.Post{}
-		err := rows.Scan(
-			&post.ID,
-			&post.Title,
-			&post.Body,
-			&post.UserId,
-			&post.CommunityId,
-			&post.Likes,
-			&post.CreatedAt,
-		)
-		if err != nil {
-			return []model.Post{}, err
-		}
-
-		posts = append(posts, post)
-	}
-
-	return posts, nil
+	return p.scanPosts(rows)
 }
+
 func (p *postRepository) FindPostByName() ([]model.Post, error) {
 	return []model.Post{}, errors.New("hello")
 }
@@ -131,10 +131,44 @@ func (p *postRepository) Create(userId uint64, postBody model.PostDTO) error {
 	return nil
 }
 
-func (p *postRepository) Update() error {
+func (p *postRepository) Update(postID uint64, userID uint64, postBody model.PostDTO) error {
+	stmt, err := p.db.Prepare(UpdateQuery)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(postBody.Title, postBody.Body, postID, userID)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return errors.New("no post updated (not found or not owner)")
+	}
 	return nil
 }
 
-func (p *postRepository) Delete() error {
+func (p *postRepository) Delete(postID uint64, userID uint64) error {
+	stmt, err := p.db.Prepare(DeleteQuery)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(postID, userID)
+	if err != nil {
+		return err
+	}
+	affected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if affected == 0 {
+		return errors.New("no post deleted (not found or not owner)")
+	}
 	return nil
 }

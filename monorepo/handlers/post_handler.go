@@ -51,11 +51,13 @@ func (p *postHandler) GetUserPosts(w http.ResponseWriter, r *http.Request) {
 	userId, err := strconv.ParseUint(params["userId"], 10, 64)
 	if err != nil {
 		response.Erro(w, http.StatusBadRequest, err)
+		return
 	}
 
 	posts, err := p.service.GetPost(userId, 0)
 	if err != nil {
 		response.Erro(w, http.StatusBadRequest, err)
+		return
 	}
 
 	response.JSON(w, http.StatusOK, posts)

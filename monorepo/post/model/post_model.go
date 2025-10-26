@@ -18,7 +18,7 @@ type Post struct {
 }
 
 type PostDTO struct {
-	CommunityId int32  `json:"community"`
+	CommunityId int32  `json:"communityId"`
 	Title       string `json:"title"`
 	Body        string `json:"body"`
 }

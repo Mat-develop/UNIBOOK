@@ -9,8 +9,8 @@ const (
 	Post      = "/post"
 	Community = Post + "/c"
 
-	PostById      = "/{id}"
-	PostByUserId  = "/{userId}"
+	PostById      = Post + "/{id}"
+	PostByUserId  = Post + "/{userId}"
 	CommunityPost = Community + "/{communityId}"
 	PostByName    = Post + "/{PostId}"
 	PostByTitle   = Post + "/{title}"

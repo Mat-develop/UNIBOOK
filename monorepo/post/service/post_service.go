@@ -11,8 +11,8 @@ type PostService interface {
 	GetPost(accountId uint64, communityId uint64) ([]model.Post, error)
 	GetPostByName() []model.Post
 	CreatePost(userId uint64, postBody model.PostDTO) error
-	UpdatePost()
-	DeletePost()
+	UpdatePost(postID uint64, userID uint64, postBody model.PostDTO) error
+	DeletePost(postID uint64, userID uint64) error
 }
 
 type postService struct {
@@ -76,6 +76,13 @@ func (p *postService) GetPostByName() []model.Post {
 	return []model.Post{}
 }
 
-func (p *postService) UpdatePost() {}
+func (p *postService) UpdatePost(postID uint64, userID uint64, postBody model.PostDTO) error {
+	if err := postBody.Prepare(); err != nil {
+		return fmt.Errorf("invalid post: %w", err)
+	}
+	return p.postRepository.Update(postID, userID, postBody)
+}
 
-func (p *postService) DeletePost() {}
+func (p *postService) DeletePost(postID uint64, userID uint64) error {
+	return p.postRepository.Delete(postID, userID)
+}
