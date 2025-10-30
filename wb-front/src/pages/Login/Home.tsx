@@ -1,21 +1,28 @@
 import React, { useState } from "react";
-import { Input, Button, Checkbox, Carousel } from "antd";
+import { Input, Button, Checkbox } from "antd";
 import styles from "./login.module.scss";
-import logo from "../assets/logo.svg"
+import logo from "../../assets/logo.svg"
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 
-import { toast, ToastContainer } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from "axios";
+import {useNavigate } from "react-router-dom";
+
 const Login: React.FC = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false); 
+  const navigate = useNavigate();
 
+  const handleRegister = () =>{
+     navigate("/register");
+    }
+    
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+   
     if (!username || !password) {
       toast.error("Please fill in all fields");
       return;
@@ -26,11 +33,28 @@ const Login: React.FC = () => {
       const response = await axios.post(`${import.meta.env.VITE_API_URL}/login`,{
         email: username,
         password: password
-      });
-    }catch{
-    }; 
-  }
+      },  {
+    headers: {
+      "Content-Type": "application/json",
+    },});
+
+      const token = response.data.token;
+
+      localStorage.setItem("authToken", token)
+      toast.success("Login successful!");
+
+      axios.defaults.headers.common["Authorization"] = `Bearer ${localStorage.getItem("authToken")}`;
+      navigate("/home");
+    } catch (error: any) {
+    toast.error(error.response?.data?.message || "Login failed");
+    } finally {
+      setLoading(false);
+    } 
+  };
   
+
+ 
+
   return (
    <div className={styles.mainContainer}>
     <div className={styles.aboutContainer}>
@@ -43,7 +67,7 @@ const Login: React.FC = () => {
         <h2>Login</h2>
         <Input
           placeholder="Username"
-           prefix={<UserOutlined />}
+          prefix={<UserOutlined />}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
@@ -61,10 +85,16 @@ const Login: React.FC = () => {
             Remember me
           </Checkbox>
         </div>
-        <Button type="primary" htmlType="submit" className={styles.submit}>
+        <Button type="primary" htmlType="submit" className={styles.submit} loading={loading}>
           Submit
         </Button>
       </form>
+
+      <div className={styles.register}>
+         <Button type="primary" className={styles.goToReg} loading={loading} onClick={handleRegister}>
+          Cadastrar
+        </Button>
+      </div>
     </div>
   </div>
   );

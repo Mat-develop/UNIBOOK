@@ -1,24 +1,17 @@
-body {
-  margin: 0;
-  padding: 0;
+.mainContainer {
   height: 100vh;
+  width: 100vw;
   display: flex;
-  flex-direction: row;
   justify-content: center;
   align-items: center;
+  gap: 20px;
 
   background: 
     linear-gradient(
       rgba(211, 127, 32, 0.4),
       rgba(0, 0, 0, 0.6)
     ),
-    url("../assets/login.jpg") center/cover no-repeat;
-}
-
-.mainContainer{
-    display: flex;
-    flex-direction: row;
-    gap: 20px;
+    url("../../assets/login.jpg") center/cover no-repeat;
 }
 
 .aboutContainer {
@@ -28,11 +21,16 @@ body {
   align-items: center;
   background-color: #fff;
   width: 400px; 
-  padding: 60px 40px;
+  padding: 20px;
   color: #130303;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   border-radius: 8px;
-  text-align: center;
+  text-align: center; 
+  min-height: 260px;
+
+  img{
+    margin-top: 10px;
+  }
 
   p{
     font-size: 20px;
@@ -45,22 +43,23 @@ body {
   justify-content: start;
   align-items: center;
   background-color: #fff;
-  width: 400px; 
-  padding: 60px 40px;
   color: #130303;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   border-radius: 8px;
   text-align: center;
+  width: 400px; 
+  min-height: 300px;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  width: 80%;
   gap: 15px;
 
   h2 {
-    margin-bottom: 10px;
+    margin-bottom: 0px;
+    margin-top: 15px;
     font-size: 28px;
     font-weight: 600;
   }
@@ -74,4 +73,17 @@ body {
     width: 100%;
     font-weight: 500;
   }
+
+
 }
+  .register{
+    margin-top: 5px !important;
+    width: 80%;
+    border-top: 1px solid rgba(31, 38, 135, 0.37);
+    .goToReg{
+      margin-top: 5px !important;
+      width: 100%;
+      background-color: rgb(173, 107, 8);
+    }
+  }
+
