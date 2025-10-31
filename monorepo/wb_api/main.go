@@ -52,8 +52,9 @@ func main() {
 	communityRepo := commuRepo.NewCommunityRepository(db)
 	communityService := commuServ.NewCommunityService(communityRepo)
 	communityHandler := handlers.NewCommunityHandler(communityService)
+
 	r := mux.NewRouter()
-	r = routes.Config(r, userHandler, postHandler)
+	r = routes.Config(r, userHandler, postHandler, communityHandler)
 	fmt.Println("Server has started")
 
 	handler := util.EnableCORS(r)
