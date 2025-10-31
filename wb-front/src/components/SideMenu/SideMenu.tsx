@@ -5,9 +5,9 @@ import {
   HomeOutlined, 
   FireOutlined, 
   ClockCircleOutlined, 
-  TagsOutlined,
   MenuFoldOutlined,
-  MenuUnfoldOutlined 
+  MenuUnfoldOutlined, 
+  MergeOutlined
 } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 
@@ -20,10 +20,16 @@ const SideMenu: React.FC = () => {
 
   const items = [
     {
-      key: "/",
+      key: "/home",
       icon: <HomeOutlined />,
       label: "Home",
-      onClick: () => navigate("/"),
+      onClick: () => navigate("/home"),
+    },
+    {
+      key: "/communities",
+      icon: <MergeOutlined />,
+      label: "Comunidades",
+      onClick: () => navigate("/communities"),
     },
     {
       key: "/popular",
@@ -34,14 +40,8 @@ const SideMenu: React.FC = () => {
     {
       key: "/new",
       icon: <ClockCircleOutlined />,
-      label: "New",
+      label: "Novo",
       onClick: () => navigate("/new"),
-    },
-    {
-      key: "/topics",
-      icon: <TagsOutlined />,
-      label: "Topics",
-      onClick: () => navigate("/topics"),
     },
   ];
 
