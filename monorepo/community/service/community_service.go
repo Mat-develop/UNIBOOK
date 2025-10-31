@@ -34,7 +34,7 @@ func (s *communityService) Create(community model.Community) (uint64, error) {
 	if community.Name == "" {
 		return 0, errors.New("name required")
 	}
-	// check unique
+
 	if existing, err := s.repo.FindByName(community.Name); err == nil && existing.Id != 0 {
 		return 0, errors.New("community already exists")
 	}

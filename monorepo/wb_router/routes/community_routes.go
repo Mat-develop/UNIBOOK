@@ -5,6 +5,10 @@ import (
 	"v1/v1/handlers"
 )
 
+const (
+	Communities = "c/all"
+)
+
 func GetCommunitiesRoutes(c handlers.CommunityHandler) []Route {
 	return []Route{
 		{
@@ -14,9 +18,9 @@ func GetCommunitiesRoutes(c handlers.CommunityHandler) []Route {
 			RequireAuth: false,
 		},
 		{
-			URI:         CommunityPost,
+			URI:         Communities,
 			Method:      http.MethodGet,
-			Function:    c.CreateCommunity,
+			Function:    c.ListCommunities,
 			RequireAuth: true,
 		},
 	}

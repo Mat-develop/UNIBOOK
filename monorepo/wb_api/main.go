@@ -7,6 +7,9 @@ import (
 	"v1/handlers"
 	postRepo "v1/post/repository"
 	postServ "v1/post/service"
+
+	commuRepo "v1/community/repository"
+	commuServ "v1/community/service"
 	"v1/users/repository"
 	"v1/users/service"
 	util "v1/util/cors"
@@ -46,6 +49,9 @@ func main() {
 	postService := postServ.NewPostService(postRepository)
 	postHandler := handlers.NewPostHandler(postService)
 
+	communityRepo := commuRepo.NewCommunityRepository(db)
+	communityService := commuServ.NewCommunityService(communityRepo)
+	communityHandler := handlers.NewCommunityHandler(communityService)
 	r := mux.NewRouter()
 	r = routes.Config(r, userHandler, postHandler)
 	fmt.Println("Server has started")
