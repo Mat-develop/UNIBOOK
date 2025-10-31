@@ -6,6 +6,7 @@ import './index.css';
 import Login from './pages/Login/Home';
 import { ToastContainer } from 'react-toastify';
 import Register from './pages/Login/Register';
+import MainContent from './components/Layout/Layout';
 
 
 function App() {
@@ -14,6 +15,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/home" element={<MainContent/>}/>
       </Routes>
       <ToastContainer
         position="top-center"

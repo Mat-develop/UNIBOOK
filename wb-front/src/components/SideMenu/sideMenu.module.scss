@@ -1,0 +1,30 @@
+.sideMenu {
+  position: fixed;
+  left: 0;
+  top: 60px;
+  height: calc(100vh - 60px);
+  z-index: 1;
+
+  :global {
+    .ant-layout-sider-children {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .ant-menu {
+      flex: 1;
+    }
+  }
+}
+
+.trigger {
+  padding: 16px;
+  text-align: center;
+  color: #fff;
+  cursor: pointer;
+  transition: color 0.3s;
+
+  &:hover {
+    color: #1890ff;
+  }
+}

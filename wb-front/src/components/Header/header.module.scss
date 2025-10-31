@@ -1,0 +1,22 @@
+.header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 2;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 50px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  gap: 20px;
+
+  .logo {
+    height: 30px;
+  }
+
+  .search {
+    width: 20%;
+  }
+}
