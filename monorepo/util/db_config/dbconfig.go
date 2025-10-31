@@ -2,7 +2,7 @@ package dbconfig
 
 import (
 	"database/sql"
-	config "v1/monorepo/util/route_config"
+	config "v1/util/route_config"
 
 	_ "github.com/go-sql-driver/mysql"
 )

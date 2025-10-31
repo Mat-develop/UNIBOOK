@@ -3,9 +3,10 @@ package service
 import (
 	"errors"
 	"strings"
-	"v1/monorepo/community/model"
-	"v1/monorepo/community/repository"
-	userModel "v1/monorepo/users/model"
+
+	"v1/community/model"
+	"v1/community/repository"
+	userModel "v1/users/model"
 )
 
 type CommunityService interface {

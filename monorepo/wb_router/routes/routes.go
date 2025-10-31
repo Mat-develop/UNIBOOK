@@ -2,8 +2,8 @@ package routes
 
 import (
 	"net/http"
-	"v1/monorepo/handlers"
-	m "v1/monorepo/util/middleware"
+	"v1/handlers"
+	m "v1/util/middleware"
 
 	"github.com/gorilla/mux"
 )

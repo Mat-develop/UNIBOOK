@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	config "v1/monorepo/util/route_config"
+	config "v1/util/route_config"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )

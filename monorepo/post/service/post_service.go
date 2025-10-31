@@ -2,8 +2,8 @@ package service
 
 import (
 	"fmt"
-	"v1/monorepo/post/model"
-	"v1/monorepo/post/repository"
+	"v1/post/model"
+	"v1/post/repository"
 )
 
 type PostService interface {

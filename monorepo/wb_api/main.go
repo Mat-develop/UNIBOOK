@@ -4,14 +4,15 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"v1/monorepo/handlers"
-	postRepo "v1/monorepo/post/repository"
-	postServ "v1/monorepo/post/service"
-	"v1/monorepo/users/repository"
-	"v1/monorepo/users/service"
-	dbconfig "v1/monorepo/util/db_config"
-	config "v1/monorepo/util/route_config"
-	"v1/monorepo/wb_router/routes"
+	"v1/handlers"
+	postRepo "v1/post/repository"
+	postServ "v1/post/service"
+	"v1/users/repository"
+	"v1/users/service"
+	util "v1/util/cors"
+	dbconfig "v1/util/db_config"
+	config "v1/util/route_config"
+	"v1/wb_router/routes"
 
 	"github.com/gorilla/mux"
 )
@@ -48,5 +49,7 @@ func main() {
 	r := mux.NewRouter()
 	r = routes.Config(r, userHandler, postHandler)
 	fmt.Println("Server has started")
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r))
+
+	handler := util.EnableCORS(r)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), handler))
 }

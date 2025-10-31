@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"time"
-	"v1/monorepo/post/model"
+	"v1/post/model"
 )
 
 const (

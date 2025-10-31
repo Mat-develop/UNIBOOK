@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 	"time"
-	"v1/monorepo/util/authentication"
+	"v1/util/authentication"
 
 	"github.com/badoux/checkmail"
 )

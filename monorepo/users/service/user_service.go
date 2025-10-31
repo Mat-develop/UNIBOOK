@@ -3,9 +3,9 @@ package service
 import (
 	"encoding/json"
 	"errors"
-	"v1/monorepo/users/model"
-	"v1/monorepo/users/repository"
-	"v1/monorepo/util/authentication"
+	"v1/users/model"
+	"v1/users/repository"
+	"v1/util/authentication"
 )
 
 type UserService interface {

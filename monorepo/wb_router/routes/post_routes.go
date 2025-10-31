@@ -2,7 +2,7 @@ package routes
 
 import (
 	"net/http"
-	"v1/monorepo/handlers"
+	"v1/handlers"
 )
 
 const (

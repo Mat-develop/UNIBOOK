@@ -3,8 +3,8 @@ package middleware
 import (
 	"log"
 	"net/http"
-	"v1/monorepo/util/authentication"
-	"v1/monorepo/util/response"
+	"v1/util/authentication"
+	"v1/util/response"
 )
 
 // writes request info

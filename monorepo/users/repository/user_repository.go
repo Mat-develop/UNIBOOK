@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"v1/monorepo/users/model"
+	"v1/users/model"
 )
 
 const (
